@@ -14,7 +14,7 @@ from matplotlib import pyplot as plt
 
 
 dpg.create_context()
-dpg.create_viewport(title='Article Sentiment Analyser', width=1200, height=800)
+dpg.create_viewport(title='Article Sentiment Analyser', width=1200, height=1200)
 
 
 
@@ -83,6 +83,7 @@ def sentimentCalculation(sentence_group):
     dpg.set_value("bar_negative", ([0], [negative]))
     dpg.set_value("bar_positive", ([1.5], [positive]))
 
+
 def analyise():
     
     text = getFiles()
@@ -122,32 +123,34 @@ def load_csv():
 
     title = []
     sentiment_score =  []
-
+    articlecount = []
+    count = 0
     for index in df.index:
+        articlecount.append(count)
         title.append(df["title"][index])
         sentiment_score.append(df["sentiment"][index])
         print(df["title"][index], df["sentiment"][index])
+        count +=1
 
 
+    dpg.set_value("sen_score", [articlecount, sentiment_score]  )
+
+
+    dpg.fit_axis_data("y_axis_s")
+    dpg.fit_axis_data("x_axis_s")
     console_add = dpg.get_value("console_text") + f"\nLoaded {filename}"
     dpg.set_value("console_text", console_add)
 
-    line2 = plt.plot(title, sentiment_score, label="Sentiment")
-
-    plt.legend(loc="upper right")
-    plt.show()    
+    #line2 = plt.plot(title, sentiment_score, label="Sentiment")
+    #plt.legend(loc="upper right")
+    #plt.show()    
 
    # print(df)
 
    # for sentiment in df:
     #    print(sentiment)
 
-
-
-    
-
-
-
+ 
 def initializeWebscraper():
 
     lg_page = requests.get("https://orf.at/")
@@ -236,7 +239,7 @@ files = sorted(os.listdir(path))
 csv_patch = os.path.join(sys.path[0], "csv")
 csv_files = sorted(os.listdir(csv_patch))
 
-with dpg.window(label='Article Sentiment Analyser', width=1200, height=780):
+with dpg.window(label='Article Sentiment Analyser', width=1200, height=1180):
     dpg.add_text("Use the button below to get today's articles into your articles folder")
     dpg.add_button(callback=initializeWebscraper, label='Collect articles', width=200)
     dpg.add_progress_bar(tag="download_progress", label="Article collection progress",width=570)
@@ -265,13 +268,21 @@ with dpg.window(label='Article Sentiment Analyser', width=1200, height=780):
     dpg.add_text("Enter the name of the current topic found in the file names create a new CSV")
     dpg.add_input_text(tag="csv_name", default_value="topic", width=570)
     dpg.add_button(tag="csv_create", label="Create new topic CSV", callback=create_csv)
-
-
     dpg.add_button(tag="csv_load", label="Create Score Plot from existing CSV", callback=load_csv)
+
+    with dpg.plot(label="Sentiment_Scores", width=570, height=200):
+        legend = dpg.add_plot_legend(show=True)
+        dpg.show_item(legend)
+        dpg.add_plot_axis(dpg.mvXAxis, label="Sentimentt", tag="x_axis_s")
+        dpg.add_plot_axis(dpg.mvYAxis, label="Scoree", tag="y_axis_s")
+        dpg.add_line_series([0],[0], label="Sentimen Score", tag="sen_score", parent="y_axis_s")
+        dpg.set_axis_limits_auto("y_axis_s")
+        dpg.set_axis_limits_auto("x_axis_s")
+
+
 
 
 analyise()
-#Show UI
             
 dpg.setup_dearpygui()
 dpg.show_viewport()
